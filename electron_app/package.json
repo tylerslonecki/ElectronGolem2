@@ -26,13 +26,27 @@
       "entitlementsInherit": "build/entitlements.mac.plist",
       "gatekeeperAssess": false
     },
-    "win": { 
+    "win": {
       "target": [
-        "nsis",
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
         "portable"
       ],
-      "icon": "build/icon.ico", 
-      "category": "public.app-category.utilities"
+      "icon": "build/icon.ico",
+      "publish": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "startMenuFolder": "ElectronGolem"
     },
     "asar": true,
     "asarUnpack": [
