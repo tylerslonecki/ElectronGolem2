@@ -7,7 +7,7 @@
 
 library(golem)
 
-# Remove fixed port assignment
+
 # options(shiny.port = 1234)
 options(shiny.host = '127.0.0.1') # Use localhost for security
 
