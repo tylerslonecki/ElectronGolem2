@@ -9,6 +9,7 @@
     "build:mac-x64": "electron-builder --mac dmg --mac zip --x64",
     "build:mac-arm64": "electron-builder --mac dmg --mac zip --arm64",
     "build:universal": "electron-builder --mac dmg --mac zip --universal",
+    "build:win": "electron-builder --win nsis --x64 --ia32",
     "build": "electron-builder"
   },
   "build": {
@@ -24,6 +25,14 @@
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
       "gatekeeperAssess": false
+    },
+    "win": { 
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.ico", 
+      "category": "public.app-category.utilities"
     },
     "asar": true,
     "asarUnpack": [
