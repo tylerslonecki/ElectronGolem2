@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+ElectronGolem.Rproj
+ElectronGolem/app_temp.R
+/electron_app/dist
+/electron_app/R
+/electron_app/node_modules
