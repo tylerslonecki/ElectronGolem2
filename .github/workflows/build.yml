@@ -87,6 +87,32 @@ jobs:
           # Rscript -e 'remotes::install_github("Breeding-Insight/BIGr")'
           # Rscript -e 'install.packages(c("golem", "httpuv", "shiny", "vcfR", "adegenet", "DT", "dplyr", "bs4Dash", "ggplot2", "purrr", "scales", "shinyWidgets", "shinydisconnect", "shinyalert", "shinyjs", "stringr", "tidyr", "updog", "AGHmatrix", "factoextra", "future", "shinycssloaders", "RColorBrewer", "tibble", "plotly", "rrBLUP", "MASS", "config", "Matrix", "matrixcalc", "markdown"), repos = "https://cran.rstudio.com")'
 
+      - name: Install R packages into Bundled R (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        R_LIBS_USER="$(pwd)/electron_app/R/library"
+        mkdir -p "$R_LIBS_USER"
+        # Install 'remotes' package into bundled R
+        electron_app/R/bin/Rscript -e "install.packages('remotes', repos='https://cran.rstudio.com', lib='$R_LIBS_USER')"
+        # Install 'ElectronGolem' package into bundled R
+        electron_app/R/bin/Rscript -e ".libPaths('$R_LIBS_USER'); remotes::install_local('.', dependencies=TRUE, lib='$R_LIBS_USER')"
+
+
+      - name: Install R packages into Bundled R (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # Set the R library path to your bundled R library
+          $R_LIBS_USER = "$(Resolve-Path .)\electron_app\R\library"
+          if (-Not (Test-Path $R_LIBS_USER)) {
+            mkdir -Path $R_LIBS_USER -Force
+          }
+          # Install 'remotes' package into bundled R
+          electron_app\R\bin\Rscript.exe -e "install.packages('remotes', repos='https://cran.rstudio.com', lib='$R_LIBS_USER')"
+          # Install 'ElectronGolem' package into bundled R
+          electron_app\R\bin\Rscript.exe -e ".libPaths('$R_LIBS_USER'); remotes::install_local('.', dependencies=TRUE, lib='$R_LIBS_USER')"
+
+
       #  # Verify R Installation on Windows (Optional)
       # - name: Verify R Installation (Windows)
       #   if: runner.os == 'Windows'
@@ -102,40 +128,40 @@ jobs:
       #     # List R_HOME contents
       #     Get-ChildItem -Path $R_HOME | Sort-Object Name | Select-Object Name
 
-      # Copy R into app directory (for macOS)
-      - name: Copy R into app directory (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          mkdir -p electron_app/R
-          cp -R "$(Rscript --vanilla -e "cat(R.home())")/." electron_app/R/
+      # # Copy R into app directory (for macOS)
+      # - name: Copy R into app directory (macOS)
+      #   if: runner.os == 'macOS'
+      #   run: |
+      #     mkdir -p electron_app/R
+      #     cp -R "$(Rscript --vanilla -e "cat(R.home())")/." electron_app/R/
 
-      # Copy R into app directory (for Windows)
-      - name: Copy R into app directory (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          # Create the target directory
-          mkdir -Path electron_app\R -Force
+      # # Copy R into app directory (for Windows)
+      # - name: Copy R into app directory (Windows)
+      #   if: runner.os == 'Windows'
+      #   shell: pwsh
+      #   run: |
+      #     # Create the target directory
+      #     mkdir -Path electron_app\R -Force
 
-          # Retrieve R_HOME using Rscript with --vanilla to prevent renv activation
-          $R_HOME = Rscript --vanilla -e "cat(R.home())"
+      #     # Retrieve R_HOME using Rscript with --vanilla to prevent renv activation
+      #     $R_HOME = Rscript --vanilla -e "cat(R.home())"
 
-          # Output R_HOME for debugging
-          Write-Output "R_HOME is $R_HOME"
+      #     # Output R_HOME for debugging
+      #     Write-Output "R_HOME is $R_HOME"
 
-          # Check if R_HOME directory exists
-          if (Test-Path $R_HOME) {
-            Write-Output "R_HOME directory exists."
-          } else {
-            Write-Error "R_HOME directory does not exist at $R_HOME"
-            exit 1
-          }
+      #     # Check if R_HOME directory exists
+      #     if (Test-Path $R_HOME) {
+      #       Write-Output "R_HOME directory exists."
+      #     } else {
+      #       Write-Error "R_HOME directory does not exist at $R_HOME"
+      #       exit 1
+      #     }
 
-          # List contents of R_HOME for verification
-          Get-ChildItem -Path $R_HOME -Recurse | Sort-Object FullName | Select-Object FullName
+      #     # List contents of R_HOME for verification
+      #     Get-ChildItem -Path $R_HOME -Recurse | Sort-Object FullName | Select-Object FullName
 
-          # Copy R files to the app directory using Copy-Item
-          Copy-Item -Path "$R_HOME\*" -Destination "electron_app\R\" -Recurse -Force
+      #     # Copy R files to the app directory using Copy-Item
+      #     Copy-Item -Path "$R_HOME\*" -Destination "electron_app\R\" -Recurse -Force
 
       - name: List R directory contents
         run: |
