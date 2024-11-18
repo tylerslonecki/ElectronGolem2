@@ -5,14 +5,13 @@ const log = require('electron-log');
 const fs = require('fs');
 const os = require('os');
 
-
 let shinyProcess;
 
 function createWindow() {
   const win = new BrowserWindow({
     width: 1024,
     height: 768,
-    icon: path.join(__dirname, 'icon.icns'), // Ensure the icon path is correct
+    icon: path.join(__dirname, 'icon.ico'), // Use .ico for Windows
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -25,26 +24,37 @@ function createWindow() {
   // Load the Shiny app URL after a short delay to ensure Shiny has started
   setTimeout(() => {
     win.loadURL('http://localhost:1234/');
-  }, 1000); // 5-second delay; adjust as needed
+  }, 1000); // Adjust the delay as needed
 }
 
 function startShinyApp() {
   const platform = os.platform();
   let rBinaryPath;
+  let rScriptPath;
+
+  // Determine the base path
+  let basePath;
+  if (process.env.NODE_ENV === 'development') {
+    basePath = __dirname;
+  } else {
+    // When packaged, __dirname points to 'resources/app.asar'
+    // Unpacked files are in 'resources/app.asar.unpacked'
+    basePath = path.join(process.resourcesPath, 'app.asar.unpacked');
+  }
 
   if (platform === 'win32') {
-    rBinaryPath = path.join(__dirname, 'R', 'bin', 'Rscript.exe');
+    rBinaryPath = path.join(basePath, 'R', 'bin', 'Rscript.exe');
   } else if (platform === 'darwin') {
-    rBinaryPath = path.join(__dirname, 'R', 'R.framework', 'Resources', 'bin', 'Rscript');
+    rBinaryPath = path.join(basePath, 'R', 'R.framework', 'Resources', 'bin', 'Rscript');
   } else if (platform === 'linux') {
-    rBinaryPath = path.join(__dirname, 'R', 'bin', 'Rscript');
+    rBinaryPath = path.join(basePath, 'R', 'bin', 'Rscript');
   } else {
     log.error(`Unsupported platform: ${platform}`);
     app.quit();
     return;
   }
 
-  const rScriptPath = path.join(__dirname, 'launch_app.R');
+  rScriptPath = path.join(basePath, 'launch_app.R');
 
   // Check if Rscript exists
   if (!fs.existsSync(rBinaryPath)) {
