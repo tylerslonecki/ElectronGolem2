@@ -152,9 +152,9 @@ jobs:
       #     # Copy R files to the app directory using Copy-Item
       #     Copy-Item -Path "$R_HOME\*" -Destination "electron_app\R\" -Recurse -Force
 
-      - name: List R directory contents
-        run: |
-          ls -R electron_app/R
+      # - name: List R directory contents
+      #   run: |
+      #     ls -R electron_app/R
 
       # Build the Electron app
       - name: Build Electron App
