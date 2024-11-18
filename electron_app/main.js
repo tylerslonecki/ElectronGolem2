@@ -3,6 +3,8 @@ const path = require('path');
 const { exec } = require('child_process');
 const log = require('electron-log');
 const fs = require('fs');
+const os = require('os');
+
 
 let shinyProcess;
 
@@ -27,7 +29,21 @@ function createWindow() {
 }
 
 function startShinyApp() {
-  const rBinaryPath = path.join(__dirname, 'R', 'R.framework', 'Resources', 'bin', 'Rscript');
+  const platform = os.platform();
+  let rBinaryPath;
+
+  if (platform === 'win32') {
+    rBinaryPath = path.join(__dirname, 'R', 'bin', 'Rscript.exe');
+  } else if (platform === 'darwin') {
+    rBinaryPath = path.join(__dirname, 'R', 'R.framework', 'Resources', 'bin', 'Rscript');
+  } else if (platform === 'linux') {
+    rBinaryPath = path.join(__dirname, 'R', 'bin', 'Rscript');
+  } else {
+    log.error(`Unsupported platform: ${platform}`);
+    app.quit();
+    return;
+  }
+
   const rScriptPath = path.join(__dirname, 'launch_app.R');
 
   // Check if Rscript exists
