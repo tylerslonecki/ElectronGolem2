@@ -150,13 +150,15 @@ jobs:
         run: |
           # Set the R library path to your bundled R library
           $R_LIBS_USER = "$(Resolve-Path .)\electron_app\R\library"
+          # Replace backslashes with forward slashes
+          $R_LIBS_USER = $R_LIBS_USER -replace '\\','/'
+
           if (-Not (Test-Path $R_LIBS_USER)) {
             mkdir -Path $R_LIBS_USER -Force
           }
-          # Install 'remotes' package into bundled R
+
           electron_app\R\bin\Rscript.exe --vanilla -e "install.packages('remotes', repos='https://cran.rstudio.com', lib='$R_LIBS_USER')"
-          # Install 'ElectronGolem' package into bundled R
-          electron_app\R\bin\Rscript.exe --vanilla -e ".libPaths('$R_LIBS_USER'); remotes::install_local('.', dependencies=TRUE, lib='$R_LIBS_USER')"
+          electron_app\R\bin\Rscript.exe --vanilla -e ".libPaths('$R_LIBS_USER'); options(repos='https://cran.rstudio.com'); remotes::install_local('.', dependencies=TRUE, lib='$R_LIBS_USER')"
 
       # - name: List R directory contents
       #   run: |
