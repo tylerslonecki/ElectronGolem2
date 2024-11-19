@@ -10,10 +10,22 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     # Your application UI logic
     fluidPage(
-      golem::golem_welcome_page() # Remove this line to start building your UI
+      titlePanel("My Shiny App"),
+      sidebarLayout(
+        sidebarPanel(
+          # Add input controls here
+          textInput("text_input", "Enter text:", value = ""),
+          actionButton("action_btn", "Submit")
+        ),
+        mainPanel(
+          # Add output elements here
+          textOutput("text_output")
+        )
+      )
     )
   )
 }
+
 
 #' Add external Resources to the Application
 #'
