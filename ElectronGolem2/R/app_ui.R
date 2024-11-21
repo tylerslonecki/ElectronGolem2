@@ -6,19 +6,15 @@
 #' @noRd
 app_ui <- function(request) {
   tagList(
-    # Leave this function for adding external resources
-    golem_add_external_resources(),
-    # Your application UI logic
+    golem_add_external_resources(),  # Correctly call the function here
     fluidPage(
       titlePanel("My Shiny App"),
       sidebarLayout(
         sidebarPanel(
-          # Add input controls here
           textInput("text_input", "Enter text:", value = ""),
           actionButton("action_btn", "Submit")
         ),
         mainPanel(
-          # Add output elements here
           textOutput("text_output")
         )
       )
@@ -51,3 +47,4 @@ golem_add_external_resources <- function() {
     # for example, you can add shinyalert::useShinyalert()
   )
 }
+

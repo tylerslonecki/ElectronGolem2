@@ -1,30 +1,240 @@
+// const { app, BrowserWindow } = require('electron');
+// const path = require('path');
+// const log = require('electron-log');
+// const fs = require('fs');
+// const os = require('os');
+// const { spawn } = require('child_process');
+
+// let mainWindow;
+// let shinyPort;
+
+// function createWindow() {
+//   mainWindow = new BrowserWindow({
+//     width: 1024,
+//     height: 768,
+//     icon: path.join(__dirname, 'icon.ico'),
+//     webPreferences: {
+//       nodeIntegration: false,
+//       contextIsolation: true,
+//       enableRemoteModule: false,
+//       webSecurity: true,
+//     },
+//   });
+
+//   // Open DevTools
+//   mainWindow.webContents.openDevTools();
+
+//   // Add event listeners for crash events
+//   mainWindow.webContents.on('crashed', () => {
+//     log.error('Renderer process crashed.');
+//     console.error('Renderer process crashed.');
+//   });
+
+//   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+//     log.error(`Failed to load URL: ${errorDescription} (${errorCode})`);
+//     console.error(`Failed to load URL: ${errorDescription} (${errorCode})`);
+//   });
+
+//   mainWindow.on('unresponsive', () => {
+//     log.warn('Window is unresponsive.');
+//     console.warn('Window is unresponsive.');
+//   });
+
+//   mainWindow.on('closed', () => {
+//     log.info('Window was closed.');
+//     console.log('Window was closed.');
+//   });
+// }
+
+
+// function startShinyApp() {
+//   const platform = os.platform();
+//   let rBinaryPath;
+//   let rScriptPath;
+
+//   // Determine the base path
+//   let basePath;
+//   log.info(`app.isPackaged: ${app.isPackaged}`);
+//   if (app.isPackaged) {
+//     basePath = path.join(process.resourcesPath, 'app.asar.unpacked');
+//     log.info(`Base path (packaged): ${basePath}`);
+//   } else {
+//     basePath = __dirname;
+//     log.info(`Base path (development): ${basePath}`);
+//   }
+
+//   // Set the Rscript binary path
+//   if (app.isPackaged) {
+//     if (platform === 'win32') {
+//       rBinaryPath = path.join(basePath, 'R', 'bin', 'Rscript.exe');
+//     } else if (platform === 'darwin') {
+//       rBinaryPath = path.join(basePath, 'R', 'R.framework', 'Resources', 'bin', 'Rscript');
+//     } else if (platform === 'linux') {
+//       rBinaryPath = path.join(basePath, 'R', 'bin', 'Rscript');
+//     } else {
+//       log.error(`Unsupported platform: ${platform}`);
+//       app.quit();
+//       return;
+//     }
+//   } else {
+//     // In development mode, use system Rscript
+//     rBinaryPath = 'Rscript';
+//   }
+
+//   // Set the path to the R script
+//   rScriptPath = path.join(basePath, 'launch_app.R');
+
+//   // Check if Rscript exists (only when packaged)
+//   if (app.isPackaged && !fs.existsSync(rBinaryPath)) {
+//     log.error(`Rscript not found at ${rBinaryPath}`);
+//     app.quit();
+//     return;
+//   }
+
+//   if (!fs.existsSync(rScriptPath)) {
+//     log.error(`launch_app.R not found at ${rScriptPath}`);
+//     app.quit();
+//     return;
+//   }
+
+//   // Start the Shiny app
+//   log.info(`Starting Shiny app with command: ${rBinaryPath} ${rScriptPath}`);
+
+//   const shinyProcess = spawn(rBinaryPath, [rScriptPath]);
+
+//   // Log stdout and stderr in real-time
+//   shinyProcess.stdout.on('data', (data) => {
+//     const message = data.toString();
+//     log.info(`Shiny stdout: ${message}`);
+  
+//     // Extract port number
+//     const portMatch = message.match(/Selected port: (\d+)/);
+//     if (portMatch) {
+//       shinyPort = portMatch[1];
+//       log.info(`Detected Shiny app port: ${shinyPort}`);
+//     }
+  
+//     // Detect when Shiny app is ready
+//     const listeningMatch = message.match(/Listening on http:\/\/127\.0\.0\.1:(\d+)/);
+//     if (listeningMatch && shinyPort) {
+//       log.info(`Shiny app is ready at port ${shinyPort}`);
+  
+//       // Load the Shiny app in Electron window
+//       if (mainWindow) {
+//         mainWindow.loadURL(`http://127.0.0.1:${shinyPort}/`);
+//       }
+//     }
+//   });
+  
+
+//   shinyProcess.stderr.on('data', (data) => {
+//     log.error(`Shiny stderr: ${data}`);
+//   });
+
+//   shinyProcess.on('close', (code) => {
+//     log.info(`Shiny process exited with code ${code}`);
+//     app.quit();
+//   });
+
+//   shinyProcess.on('error', (err) => {
+//     log.error(`Failed to start Shiny process: ${err}`);
+//     app.quit();
+//   });
+// }
+
+// app.whenReady().then(() => {
+//   createWindow();
+//   startShinyApp();
+
+//   app.on('activate', function () {
+//     if (BrowserWindow.getAllWindows().length === 0) createWindow();
+//   });
+// });
+
+// app.on('window-all-closed', () => {
+//   // On macOS, it's common for applications to stay open until the user explicitly quits
+//   if (process.platform !== 'darwin') {
+//     app.quit();
+//   }
+// });
+
+
+const log = require('electron-log');
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
-const { exec } = require('child_process');
-const log = require('electron-log');
+const { spawn } = require('child_process');
 const fs = require('fs');
+const axios = require('axios'); // Ensure axios is installed: npm install axios
 const os = require('os');
 
 let shinyProcess;
+let mainWindow;
+let shinyPort;
 
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1024,
     height: 768,
-    icon: path.join(__dirname, 'icon.ico'), // Use .ico for Windows
+    icon: path.join(__dirname, 'icon.icns'),
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      enableRemoteModule: false,
+      webSecurity: true,
     },
   });
 
-  // Open Developer Tools for debugging
-  // win.webContents.openDevTools();
+  mainWindow.loadURL(`http://localhost:${shinyPort}/`);
 
-  // Load the Shiny app URL after a short delay to ensure Shiny has started
-  setTimeout(() => {
-    win.loadURL('http://localhost:1234/');
-  }, 1000); // Adjust the delay as needed
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+}
+
+function waitForShinyServer(port, retries = 20, delay = 500) {
+  return new Promise((resolve, reject) => {
+    const attempt = (currentRetry) => {
+      axios.get(`http://localhost:${port}/`)
+        .then(() => resolve())
+        .catch((err) => {
+          if (currentRetry <= 0) {
+            reject(new Error('Shiny server did not start in time.'));
+          } else {
+            setTimeout(() => attempt(currentRetry - 1), delay);
+          }
+        });
+    };
+    attempt(retries);
+  });
+}
+
+function handleShinyOutput(data) {
+  const output = data.toString().trim();
+  log.info(`Shiny output: ${output}`);
+
+  // Look for the "Selected port" message
+  const portMatch = output.match(/Selected port: (\d+)/);
+  if (portMatch) {
+    shinyPort = portMatch[1];
+    log.info(`Selected port: ${shinyPort}`);
+  }
+
+  // Look for the "Listening on" message
+  const listeningMatch = output.match(/Listening on (http:\/\/127\.0\.0\.1:\d+)/);
+  if (listeningMatch) {
+    log.info(`Shiny app is fully running on port ${shinyPort}`);
+    
+    // Wait for the Shiny server to be ready before creating the window
+    waitForShinyServer(shinyPort)
+      .then(() => {
+        log.info(`Shiny server is up on port ${shinyPort}. Creating window.`);
+        createWindow();
+      })
+      .catch((err) => {
+        log.error(err.message);
+        app.quit();
+      });
+  }
 }
 
 function startShinyApp() {
@@ -34,30 +244,38 @@ function startShinyApp() {
 
   // Determine the base path
   let basePath;
-  if (process.env.NODE_ENV === 'development') {
-    basePath = __dirname;
-  } else {
-    // When packaged, __dirname points to 'resources/app.asar'
-    // Unpacked files are in 'resources/app.asar.unpacked'
+  log.info(`app.isPackaged: ${app.isPackaged}`);
+  if (app.isPackaged) {
     basePath = path.join(process.resourcesPath, 'app.asar.unpacked');
-  }
-
-  if (platform === 'win32') {
-    rBinaryPath = path.join(basePath, 'R', 'bin', 'Rscript.exe');
-  } else if (platform === 'darwin') {
-    rBinaryPath = path.join(basePath, 'R', 'R.framework', 'Resources', 'bin', 'Rscript');
-  } else if (platform === 'linux') {
-    rBinaryPath = path.join(basePath, 'R', 'bin', 'Rscript');
+    log.info(`Base path (packaged): ${basePath}`);
   } else {
-    log.error(`Unsupported platform: ${platform}`);
-    app.quit();
-    return;
+    basePath = __dirname;
+    log.info(`Base path (development): ${basePath}`);
   }
 
+  // Set the Rscript binary path
+  if (app.isPackaged) {
+    if (platform === 'win32') {
+      rBinaryPath = path.join(basePath, 'R', 'bin', 'Rscript.exe');
+    } else if (platform === 'darwin') {
+      rBinaryPath = path.join(basePath, 'R', 'R.framework', 'Resources', 'bin', 'Rscript');
+    } else if (platform === 'linux') {
+      rBinaryPath = path.join(basePath, 'R', 'bin', 'Rscript');
+    } else {
+      log.error(`Unsupported platform: ${platform}`);
+      app.quit();
+      return;
+    }
+  } else {
+    // In development mode, use system Rscript
+    rBinaryPath = 'Rscript';
+  }
+
+  // Set the path to the R script
   rScriptPath = path.join(basePath, 'launch_app.R');
 
-  // Check if Rscript exists
-  if (!fs.existsSync(rBinaryPath)) {
+  // Check if Rscript exists (only when packaged)
+  if (app.isPackaged && !fs.existsSync(rBinaryPath)) {
     log.error(`Rscript not found at ${rBinaryPath}`);
     app.quit();
     return;
@@ -72,25 +290,16 @@ function startShinyApp() {
   // Start the Shiny app
   log.info(`Starting Shiny app with command: "${rBinaryPath}" "${rScriptPath}"`);
 
-  shinyProcess = exec(`"${rBinaryPath}" "${rScriptPath}"`, (error, stdout, stderr) => {
-    if (error) {
-      log.error(`Error starting Shiny app: ${error.message}`);
-      app.quit();
-      return;
-    }
-    if (stderr) {
-      log.error(`Shiny app stderr: ${stderr}`);
-    }
-    log.info(`Shiny app stdout: ${stdout}`);
-  });
+  shinyProcess = spawn(rBinaryPath, [rScriptPath]);
 
-  // Log stdout and stderr in real-time
+  // Listen to stdout
   shinyProcess.stdout.on('data', (data) => {
-    log.info(`Shiny stdout: ${data}`);
+    handleShinyOutput(data);
   });
 
+  // Listen to stderr
   shinyProcess.stderr.on('data', (data) => {
-    log.error(`Shiny stderr: ${data}`);
+    handleShinyOutput(data);
   });
 
   shinyProcess.on('close', (code) => {
@@ -101,16 +310,22 @@ function startShinyApp() {
 }
 
 app.whenReady().then(() => {
+  log.info('Electron app is ready.');
   startShinyApp();
-  createWindow();
 
   app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0 && shinyPort) {
+      createWindow();
+    }
   });
 });
 
 app.on('window-all-closed', () => {
-  // On macOS, it's common for applications to stay open until the user explicitly quits
+  // Terminate the Shiny process when all windows are closed
+  if (shinyProcess) {
+    shinyProcess.kill();
+    shinyProcess = null;
+  }
   if (process.platform !== 'darwin') {
     app.quit();
   }
