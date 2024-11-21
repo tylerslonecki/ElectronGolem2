@@ -140,7 +140,7 @@ jobs:
           # Install 'remotes' package into bundled R
           electron_app/R/bin/Rscript --vanilla -e "install.packages('remotes', repos='https://cran.rstudio.com', lib='$R_LIBS_USER')"
           # Install 'ElectronGolem' package into bundled R
-          electron_app/R/bin/Rscript --vanilla -e ".libPaths('$R_LIBS_USER'); remotes::install_local('.', dependencies=TRUE, lib='$R_LIBS_USER')"
+          electron_app/R/bin/Rscript --vanilla -e ".libPaths('$R_LIBS_USER'); remotes::install_local('ElectronGolem2', dependencies=TRUE, lib='$R_LIBS_USER')"
 
       - name: Install R packages into Bundled R (Windows)
         if: runner.os == 'Windows'
@@ -158,7 +158,7 @@ jobs:
           }
 
           electron_app\R\bin\Rscript.exe --vanilla -e "install.packages('remotes', repos='https://cran.rstudio.com', lib='$R_LIBS_USER')"
-          electron_app\R\bin\Rscript.exe --vanilla -e ".libPaths('$R_LIBS_USER'); options(repos='https://cran.rstudio.com'); remotes::install_local('.', dependencies=TRUE, lib='$R_LIBS_USER')"
+          electron_app\R\bin\Rscript.exe --vanilla -e ".libPaths('$R_LIBS_USER'); options(repos='https://cran.rstudio.com'); remotes::install_local('ElectronGolem2', dependencies=TRUE, lib='$R_LIBS_USER')"
 
       # - name: List R directory contents
       #   run: |
